@@ -7,23 +7,23 @@
 
 var svg_width = document.getElementById("graphic").offsetWidth - document.getElementById("sections").offsetWidth - 80;
 
-if(svg_width < 575){
+if (svg_width < 575) {
 
-var svg_story = d3.select("#vis")
-  .append("svg")
-  .attr("height", 300)
-  .attr('width', svg_width)
-  .append("g");
+  var svg_story = d3.select("#vis")
+    .append("svg")
+    .attr("height", 300)
+    .attr('width', svg_width)
+    .append("g");
 
 };
 
-if(svg_width > 575){
+if (svg_width > 575) {
 
-var svg_story = d3.select("#vis")
-  .append("svg")
-  .attr("height", 400)
-  .attr('width', svg_width)
-  .append("g");
+  var svg_story = d3.select("#vis")
+    .append("svg")
+    .attr("height", 400)
+    .attr('width', svg_width)
+    .append("g");
 
 };
 
@@ -38,10 +38,18 @@ var chosen_position_5 = $('#scroll-five').offset().top - vis_position;
 var chosen_position_6 = $('#scroll-six').offset().top - vis_position;
 var chosen_position_final = $('#scroll-final').offset().top - vis_position;
 
+var section_array = [chosen_position_1, chosen_position_2, chosen_position_3, chosen_position_4, chosen_position_5, chosen_position_6, chosen_position_final]
+var section_labels = ['First section', 'Second section', 'Third section', 'Fourth section', 'Fifth section', 'Sixth section', 'Final section']
+var trigger_functions = [showSection_1(), showSection_2(), showSection_3(), showSection_4(), showSection_5(), showSection_6()]
+
 // This sets up some identifiers for each section. We'll use this as a sort of lookup. It says if the input is chosen_position_1 then output 'First section' and so on
 var section_index = d3.scaleOrdinal()
-  .domain([chosen_position_1, chosen_position_2, chosen_position_3, chosen_position_4, chosen_position_5, chosen_position_6, chosen_position_final])
-  .range(['First section', 'Second section', 'Third section', 'Fourth section', 'Fifth section', 'Sixth section', 'Final section']);
+  .domain(section_array)
+  .range(section_labels);
+
+// var section_triggers = d3.scaleOrdinal()
+//   .domain(section_labels)
+//   .range(trigger_functions)
 
 // Get the current position of the top of the viewport in relation to the document
 var current_scroll_position = $(this).scrollTop();
@@ -63,85 +71,208 @@ if (current_scroll_position < chosen_position_2) {
   active_section = 'You have reached the end';
 }
 
+console.log(active_section)
+
+    switch (active_section) {
+      case 'First section':
+        showSection_1()
+        break;
+      case 'Second section':
+        showSection_2()
+        break;
+      case 'Third section':
+        showSection_3()
+        break;
+      case 'Fourth section':
+        showSection_4()
+        break;
+      case 'Fifth section':
+        showSection_5()
+        break;
+      case 'Sixth section':
+        showSection_6()
+    }
+
+//  We want to be able to tell if the active_section changes. To do this we need to store the current section and then compare it to the new one. Store the active_section as 'old_active'
 var old_active = active_section;
 
-// As soon as the scroll changes the relevant function is fired, even if it means firing the same again and again within the section (if you scroll a little bit but within the same function). I think we need to store the last scroll position and then fire the function only once when it reaches the next level.
 
-//  perhaps a scale which says if x between 1 - 200 = first, 201-400 = second. if scroll position is equal to the last one then do nothing, if it changes into a new section then fire function.
 
-// This function is storing the scroll position everytime scroll happens, as well as updating the active_section, depending on the value
-//  This currently fires every time the scroll position changes.
-window.onscroll = function() {check_scroll_pos()};
-
+// This function is storing the scroll position as well as storing the existing active_section as 'old_active', updating the active_section, and then when the old_active and active_section values are different (indicative that the user has moved between sections) a new event occurs
 function check_scroll_pos() {
   current_scroll_position = $(this).scrollTop();
 
   if (current_scroll_position < chosen_position_2) {
-  old_active = active_section;
+    old_active = active_section;
     active_section = section_index(chosen_position_1);
   } else if (current_scroll_position >= chosen_position_2 && current_scroll_position < chosen_position_3) {
-  old_active = active_section;
-  active_section = section_index(chosen_position_2)
+    old_active = active_section;
+    active_section = section_index(chosen_position_2)
   } else if (current_scroll_position >= chosen_position_3 && current_scroll_position < chosen_position_4) {
-  old_active = active_section;
-  active_section = section_index(chosen_position_3);
+    old_active = active_section;
+    active_section = section_index(chosen_position_3);
   } else if (current_scroll_position >= chosen_position_4 && current_scroll_position < chosen_position_5) {
-  old_active = active_section;
-  active_section = section_index(chosen_position_4);
+    old_active = active_section;
+    active_section = section_index(chosen_position_4);
   } else if (current_scroll_position >= chosen_position_5 && current_scroll_position < chosen_position_6) {
-old_active = active_section;
+    old_active = active_section;
     active_section = section_index(chosen_position_5);
   } else if (current_scroll_position >= chosen_position_6 && current_scroll_position < chosen_position_final) {
-old_active = active_section;
+    old_active = active_section;
     active_section = section_index(chosen_position_6);
   } else {
-old_active = active_section;
+    old_active = active_section;
     active_section = 'You have reached the end';
   }
 
-if (old_active !== active_section) {
-  console.log('You must have changed section - your new section is', active_section, ' the relevant viz should occur now')
-  console.log(old_active)
-  console.log(active_section)
-};
+  // We only want this to trigger if a user moves into a DIFFERENT section, and not every time the scroll position changes (e.g. a small scroll within a single section).
+  // In particular we can tell where a user came from as well (whether they are scrolling down through or back up the sections).
+  if (old_active !== active_section) {
+    console.log('You must have changed section from', old_active, 'to', active_section, '. The relevant viz should occur now')
+
+    // We can now trigger the relevant function based on whatever the active_section is.
+    switch (active_section) {
+      case 'First section':
+        showSection_1()
+        break;
+      case 'Second section':
+        showSection_2()
+        break;
+      case 'Third section':
+        showSection_3()
+        break;
+      case 'Fourth section':
+        showSection_4()
+        break;
+      case 'Fifth section':
+        showSection_5()
+        break;
+      case 'Sixth section':
+        showSection_6()
+    }
+
+  };
 
 };
 
+// This currently fires the check_scroll_pos every time the scroll position changes.
+window.onscroll = function() {
+  check_scroll_pos()
+};
 
+// Remember everything should have a transition, even if it is duration(0).
 
+function showSection_1() {
 
-//
-// if (current_scroll_position > 300) {
-//
-// svg_story
-// .selectAll("text")
-// .transition()
-// .duration(1000)
-// .attr('opacity', 0)
-// .transition()
-// .duration(0)
-// .remove()
-// }
-//
-// else {
-//
-// svg_story
-// .selectAll("text")
-// .transition()
-// .duration(0)
-// .remove()
-//
-// svg_story
-// .append("text")
-// .attr("text-anchor", "middle")
-// .attr('id', 'testing1')
-// .attr("y", 200)
-// .attr("x", svg_width * .5)
-// .attr('opacity', 0)
-// .transition()
-// .duration(1000)
-// .attr('opacity', 1)
-// .style('font-weight', 'bold')
-// .text('I am sitting up here...');
-//
-// };
+  svg_story
+    .selectAll("#testing2")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .append("text")
+    .attr("text-anchor", "middle")
+    .attr('id', 'testing1')
+    .attr("y", 200)
+    .attr("x", svg_width * .5)
+    .attr('opacity', 0)
+    .transition()
+    .duration(1000)
+    .attr('opacity', 1)
+    .style('font-weight', 'bold')
+    .text('I am sitting up here...');
+};
+
+function showSection_2() {
+
+  svg_story
+    .selectAll("#testing1")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .append("text")
+    .attr("text-anchor", "middle")
+    .attr('id', 'testing2')
+    .attr("y", 200)
+    .attr("x", svg_width * .5)
+    .attr('opacity', 0)
+    .transition()
+    .duration(1000)
+    .attr('opacity', 1)
+    .style('font-weight', 'bold')
+    .text('Lizard on a chair');
+};
+
+function showSection_3() {
+
+  svg_story
+    .selectAll("#testing1")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .selectAll("#testing2")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+};
+
+function showSection_4() {
+
+  svg_story
+    .selectAll("#testing1")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .selectAll("#testing2")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+};
+
+function showSection_5() {
+
+  svg_story
+    .selectAll("#testing1")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .selectAll("#testing2")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+};
+
+function showSection_6() {
+
+  svg_story
+    .selectAll("#testing1")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+
+  svg_story
+    .selectAll("#testing2")
+    .transition()
+    .duration(750)
+    .style('opacity', 0)
+    .remove();
+};
