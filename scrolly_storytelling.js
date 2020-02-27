@@ -2,12 +2,22 @@
 
 // I decided to experiment with my own functions and methods to achieve changes over the course of the page.
 
-// Whilst I have not used all the code from Jim, the approach is very inspired from it.
-
-// When scroll position reaches x do y etc.
+// Whilst I have not used code from Jim, the approach is very inspired from it. // When scroll position reaches x do y etc.
 // https://vallandingham.me/scroller.html
 
 var svg_width = document.getElementById("graphic").offsetWidth - document.getElementById("sections").offsetWidth - 80;
+
+if(svg_width < 575){
+
+var svg_story = d3.select("#vis")
+  .append("svg")
+  .attr("height", 300)
+  .attr('width', svg_width)
+  .append("g");
+
+};
+
+if(svg_width > 575){
 
 var svg_story = d3.select("#vis")
   .append("svg")
@@ -15,8 +25,11 @@ var svg_story = d3.select("#vis")
   .attr('width', svg_width)
   .append("g");
 
+};
+
 var vis_position = $('#vis')[0].getBoundingClientRect().top // Where is the data vis vertical position from the top of the viewport (not top of document, as some people may reload part way down)
 
+// Determine the scroll position of the start of each section, minus the vis_position. We'll be setting the application so that the trigger for a new part is when the section is in line with the top of the svg rather than the top of the viewport.
 var chosen_position_1 = $('#scroll-one').offset().top - vis_position;
 var chosen_position_2 = $('#scroll-two').offset().top - vis_position;
 var chosen_position_3 = $('#scroll-three').offset().top - vis_position;
@@ -25,16 +38,17 @@ var chosen_position_5 = $('#scroll-five').offset().top - vis_position;
 var chosen_position_6 = $('#scroll-six').offset().top - vis_position;
 var chosen_position_final = $('#scroll-final').offset().top - vis_position;
 
+// This sets up some identifiers for each section. We'll use this as a sort of lookup. It says if the input is chosen_position_1 then output 'First section' and so on
 var section_index = d3.scaleOrdinal()
   .domain([chosen_position_1, chosen_position_2, chosen_position_3, chosen_position_4, chosen_position_5, chosen_position_6, chosen_position_final])
-  .range(['First section', 'second section', 'third', 'fourth', 'fifth', 'sixth', 'Last section']);
+  .range(['First section', 'Second section', 'Third section', 'Fourth section', 'Fifth section', 'Sixth section', 'Final section']);
 
+// Get the current position of the top of the viewport in relation to the document
 var current_scroll_position = $(this).scrollTop();
-var active_section = null;
-var old_section = null;
+var active_section = null; // initialise a variable called active_section
 
 if (current_scroll_position < chosen_position_2) {
-  active_section = section_index(chosen_position_1);
+  active_section = section_index(chosen_position_1)
 } else if (current_scroll_position >= chosen_position_2 && current_scroll_position < chosen_position_3) {
   active_section = section_index(chosen_position_2);
 } else if (current_scroll_position >= chosen_position_3 && current_scroll_position < chosen_position_4) {
@@ -49,46 +63,52 @@ if (current_scroll_position < chosen_position_2) {
   active_section = 'You have reached the end';
 }
 
-// We currently have an issue where as soon as the scroll changes the relevant function is fired, even if it means firing the same vis again and again within the section (if you scroll a little bit but within the same function).
-// I think we need to store the last scroll position and then fire the function when it reaches the next level.
+var old_active = active_section;
+
+// As soon as the scroll changes the relevant function is fired, even if it means firing the same again and again within the section (if you scroll a little bit but within the same function). I think we need to store the last scroll position and then fire the function only once when it reaches the next level.
 
 //  perhaps a scale which says if x between 1 - 200 = first, 201-400 = second. if scroll position is equal to the last one then do nothing, if it changes into a new section then fire function.
 
 // This function is storing the scroll position everytime scroll happens, as well as updating the active_section, depending on the value
 //  This currently fires every time the scroll position changes.
-window.onscroll = function() {
-  check_scroll_pos()
-};
+window.onscroll = function() {check_scroll_pos()};
 
 function check_scroll_pos() {
   current_scroll_position = $(this).scrollTop();
 
   if (current_scroll_position < chosen_position_2) {
+  old_active = active_section;
     active_section = section_index(chosen_position_1);
   } else if (current_scroll_position >= chosen_position_2 && current_scroll_position < chosen_position_3) {
-    active_section = section_index(chosen_position_2);
+  old_active = active_section;
+  active_section = section_index(chosen_position_2)
   } else if (current_scroll_position >= chosen_position_3 && current_scroll_position < chosen_position_4) {
-    active_section = section_index(chosen_position_3);
+  old_active = active_section;
+  active_section = section_index(chosen_position_3);
   } else if (current_scroll_position >= chosen_position_4 && current_scroll_position < chosen_position_5) {
-    active_section = section_index(chosen_position_4);
+  old_active = active_section;
+  active_section = section_index(chosen_position_4);
   } else if (current_scroll_position >= chosen_position_5 && current_scroll_position < chosen_position_6) {
+old_active = active_section;
     active_section = section_index(chosen_position_5);
   } else if (current_scroll_position >= chosen_position_6 && current_scroll_position < chosen_position_final) {
+old_active = active_section;
     active_section = section_index(chosen_position_6);
   } else {
+old_active = active_section;
     active_section = 'You have reached the end';
   }
 
-console.log(active_section)
+if (old_active !== active_section) {
+  console.log('You must have changed section - your new section is', active_section, ' the relevant viz should occur now')
+  console.log(old_active)
+  console.log(active_section)
+};
 
 };
 
-//
-active_section.onchange = fire_my_svg;
-//
-function fire_my_svg() {
-  console.log('I have seen the light')
-}
+
+
 
 //
 // if (current_scroll_position > 300) {

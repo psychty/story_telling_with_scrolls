@@ -1,6 +1,6 @@
 
 .container {
-width: calc(75%);
+width: calc(65%);
 margin: auto;
 }
 
@@ -9,7 +9,7 @@ margin: auto;
 #sections {
 position: relative;
 display: inline-block;
-width: calc(20% - 40px);
+width: calc(25% - 40px);
 margin-left: 20px;
 margin-right: 20px;
 top: 0px;
